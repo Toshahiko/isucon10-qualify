@@ -869,9 +869,10 @@ func searchEstateNazotte(c echo.Context) error {
 		    SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? 
 	    ) AS TMP
 	    WHERE 
-		  ST_Contains(ST_PolygonFromText(POINT(TMP.Latitude, TMP.Longitude)), ST_GeomFromText(POINT(TMP.Latitude, TMP.Longitude))) 
+		  ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(CONCAT('POINT(', TMP.Latitude, ' ',TMP.Longitude, ')') )) 
 		ORDER BY popularity DESC, id ASC
 	`
+	query = fmt.Sprintf(query, coordinates.coordinatesToText())
 	err = db.Select(&estatesInPolygon, query, b.BottomRightCorner.Latitude, b.TopLeftCorner.Latitude, b.BottomRightCorner.Longitude, b.TopLeftCorner.Longitude)
 	if err == sql.ErrNoRows {
 		c.Echo().Logger.Infof("select * from estate where latitude ...", err)
